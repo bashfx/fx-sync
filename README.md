@@ -6,7 +6,7 @@ home until I move into its final @basfx/fx-xsync home.
 
 ## Note
  Please note that this is only been tested on latest mac os and may not work on other linux systems (atm) for things like sed that 
-may have a different implementation. Note that this also requires fswatch (brew install fswatch).
+may have a different implementation. Note that this also requires fswatch (`brew install fswatch`).
 
  Please also note that the script will need some major cleanup so consider this a beta if you decide to use it.
 
@@ -24,19 +24,29 @@ directories to make sure everything is working ok before running live files. "Wo
 
 ## Usage
 
-xsync help *prints commands and options*
+### xsync help *prints commands and options*
 
-xsync <cmd> --trace *trace flag shows additional debug msgs level 2*
-xsync <cmd> --debug *debug flag prints non essential info level 1*
-xsync <cmd> --quiet *shuts off all non-essential outputs and only prints essentials*
-xsync <cmd> --delete *enables deleted file sync on rsync, by default it only syncs writes*
-xsync <cmd> --config *set a custom path for the config file that should be used*
+### xsync <cmd> --trace 
+*trace flag shows additional debug msgs level 2*
+### xsync <cmd> --debug
+*debug flag prints non essential info level 1*
+### xsync <cmd> --quiet
+*shuts off all non-essential outputs and only prints essentials*
+### xsync <cmd> --delete
+*enables deleted file sync on rsync, by default it only syncs writes*
+### xsync <cmd> --config
+*set a custom path for the config file that should be used*
 
-xsync run  *iterates through the config file to start an fswatch and rsync handler for each entry*
-xsync stop *kills all fswatch and child rsync processes, which just uses PID-1 to find the child*
-xsync pause <N> *pause the FSWATCH JOB with index N*
-xsync restart <N> *restart the FSWATCH JOB with index N*
-xsync now  *list all watchers and their status*
+### xsync run 
+*iterates through the config file to start an fswatch and rsync handler for each entry*
+### xsync stop
+*kills all fswatch and child rsync processes, which just uses PID-1 to find the child*
+### xsync pause <N>
+*pause the FSWATCH JOB with index N*
+### xsync restart <N>
+*restart the FSWATCH JOB with index N*
+### xsync now 
+*list all watchers and their status*
 
 *there are additional utility commands mostly for debugging*
 
