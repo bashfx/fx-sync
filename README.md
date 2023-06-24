@@ -50,8 +50,9 @@ XSYNC has not been tested to handle RSYNC ssh connections without a pre-made ssh
 *pause the FSWATCH JOB with index N*
 ### xsync restart <N>
 *restart the FSWATCH JOB with index N*
-### xsync now 
+### xsync stat 
 *list all watchers and their status*
+
 
 *there are additional utility commands mostly for debugging, check the dispatch function to see all of them*
 
