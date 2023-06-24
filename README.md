@@ -1,8 +1,8 @@
 # Xsync
 
-## Bash
- XSYNC(3) bash utility for spawning rsync with an fswatch listener. Pretty janky but works. Temporary home untiL I move into 
-its final @basfx/fx-xsync home.
+## Bash 3.2+ Script
+ XSYNC(3) bash sync manager using fswatch + rsync. Uses config file to spawn rsync tasks. Pretty janky but works. Temporary 
+home until I move into its final @basfx/fx-xsync home.
 
 ## Note
  Please note that this is only been tested on latest mac os and may not work on other linux systems (atm) for things like sed that 
