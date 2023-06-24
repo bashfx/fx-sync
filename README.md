@@ -1,4 +1,4 @@
-#Xsync
+# Xsync
 
 ## Bash
  XSYNC(3) bash utility for spawning rsync with an fswatch listener. Pretty janky but works. Temporary home untiL I move into 
