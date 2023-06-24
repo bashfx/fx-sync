@@ -1,8 +1,8 @@
 # Xsync
 
 ## Bash 3.2+ Script
- XSYNC(3) bash sync manager using fswatch + rsync. Uses config file to spawn rsync tasks. Pretty janky but works. Temporary 
-home until I move into its final @basfx/fx-xsync home.
+ XSYNC(3) bash sync manager using fswatch + rsync. Uses config file to spawn rsync tasks. Pretty janky but works.This repo 
+is a temporary home until I move into its final @basfx/fx-xsync home because I was not saving changes! oops.
 
 ## Note
  Please note that this is only been tested on latest mac os and may not work on other linux systems (atm) for things like sed that 
@@ -12,8 +12,10 @@ may have a different implementation. Note that this also requires fswatch (`brew
 
 ## Install
 
-First specify your $XSYNC_HOME prefix which will be the home directory for all files used by XSYNC. Add it to your ..profile. 
-XSYNC will look for your default config file in $XSYNC_HOME/config. You can also use the `--config` command to specify a path. 
+First specify your `$XSYNC_HOME` prefix which will be the home directory for all files used by XSYNC. Add it to your .profile in 
+or current environment.
+
+XSYNC will look for your default config file in `$XSYNC_HOME/config`. You can also use the `--config` command to specify a path. 
 
 Config file format is `SSH_HOST LOCAL_DIR HOST_DIR` one RSYNC entry per line. You can have multiples of the same host in case your 
 syncing multiple directories. SSH_HOST is the host entry in your `~/.ssh/config` where you have already setup SSH keys on your local 
@@ -26,17 +28,20 @@ directories to make sure everything is working ok before running live files. "Wo
 
 ## Usage
 
-### xsync help *prints commands and options*
+### xsync (command) [options]
 
-### xsync <cmd> --trace 
+### xsync help
+*prints commands and options*
+
+### xsync --trace 
 *trace flag shows additional debug msgs level 2*
-### xsync <cmd> --debug
+### xsync --debug
 *debug flag prints non essential info level 1*
-### xsync <cmd> --quiet
+### xsync --quiet
 *shuts off all non-essential outputs and only prints essentials*
-### xsync <cmd> --delete
+### xsync --mirror
 *enables deleted file sync on rsync, by default it only syncs writes*
-### xsync <cmd> --config
+### xsync --config path/to/config
 *set a custom path for the config file that should be used*
 
 ### xsync run 
@@ -50,7 +55,7 @@ directories to make sure everything is working ok before running live files. "Wo
 ### xsync now 
 *list all watchers and their status*
 
-*there are additional utility commands mostly for debugging*
+*there are additional utility commands mostly for debugging, check the dispatch function to see all of them*
 
 ## Final Note
 
