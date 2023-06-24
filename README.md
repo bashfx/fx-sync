@@ -10,7 +10,7 @@ may have a different implementation. Note that this also requires fswatch (`brew
 
 Also note that the script will need some major cleanup so consider this a beta if you decide to use it. If you are tinkering around with the script, the flow is `main -> options -> dispatch -> api` for all calls. There may be some redundancies in the code from things I havent cleaned up yet (like the syncx.cache file).
 
-Finally if for some reason commands are not outputting ANY information to console, use the `--trace` command, that usually works. 
+Finally if for some reason commands are not outputting ANY information to console, use the `--trace` flag, that usually works. 
 
 ## Install
 
