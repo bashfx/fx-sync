@@ -12,14 +12,16 @@ may have a different implementation. Note that this also requires fswatch (`brew
 
 ## Install
 
-First specify your $XSYNC_HOME prefix which will be the home directory for all files used by XSYNC in your .profile. XSYNC will look 
-for your default config file in $XSYNC_HOME. 
+First specify your $XSYNC_HOME prefix which will be the home directory for all files used by XSYNC. Add it to your ..profile. 
+XSYNC will look for your default config file in $XSYNC_HOME/config. You can also use the `--config` command to specify a path. 
 
-Config file format is SSH_HOST LOCAL_DIR HOSTD_DIR one per each line. You can have multiples of the same host in case your syncing 
-multiple directories. SSH_HOST is the host entry in your .ssh/config where you have already setup SSH keys on your local and remote 
-server. XSYNC has not been tested to handle RSYNC ssh connections without a pre-made key.
+Config file format is `SSH_HOST LOCAL_DIR HOST_DIR` one RSYNC entry per line. You can have multiples of the same host in case your 
+syncing multiple directories. SSH_HOST is the host entry in your `~/.ssh/config` where you have already setup SSH keys on your local 
+and remote server. 
 
-Warning -- first make sure you have essential files backed before attempting sync, and its best to test with a set of dummy 
+XSYNC has not been tested to handle RSYNC ssh connections without a pre-made key.
+
+Warning -- first make sure you have essential files backed before attempting to use xsync, and its best to test with a set of dummy 
 directories to make sure everything is working ok before running live files. "Works on my machine"
 
 ## Usage
