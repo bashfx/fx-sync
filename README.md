@@ -1,7 +1,7 @@
-# XSYNC(3)
+# FX-SYNC(1)
 
 ## Bash 3.2+ Script
-XSYNC(3) bash sync manager using fswatch + rsync. Uses config file to spawn rsync tasks. Pretty janky but works.This repo 
+FX-SYNC(1) bash sync manager using fswatch + rsync. Uses config file to spawn rsync tasks. Pretty janky but works.This repo 
 is a temporary home until I move into its final @basfx/fx-xsync home because I was not saving changes! oops.
 
 ## Note
