@@ -16,11 +16,23 @@
 #note: debug with -vv --rsync-path=/usr/bin/rsync
 
   SYNCX_CONFIG="${SYNCX_CONFIG:-$SYNCX_HOME/config}";
+  # can we add a way to look for a local syncx.rc file?
+
   SYNCX_RC="$SYNCX_HOME/syncx.rc"
   SYNCX_CACHE="$SYNCX_HOME/syncx.cache"
 
   SYNCX_LOG="$MY_LOG/syncx-change.log"
   SYNCX_ACTIVE_ID=-999;
+
+
+# sync@devnull fun1:on
+# --local /my/path
+# --remote /other/path
+# --include '*.log'
+# --exclude '*'
+# --flags -avi
+
+
 
   touch $SYNCX_LOG
   chmod u+w "$SYNCX_LOG"
@@ -112,6 +124,26 @@
     return $ret
   }
 
+
+  __confirm2() {
+    local ret=1 answer src
+    __printf "${1}? > " "white2"
+    [ $opt_yes -eq 0 ] && { __printf "${bld}${green}auto yes${x}\n"; return 0; }
+    src=${BASH_SOURCE:+/dev/stdin} || src='/dev/tty'
+
+    while read -r -n 1 -s answer < $src; do
+      [[ $? -eq 1 ]] && exit 1
+      [[ $answer = [YyNn10tf+\-q] ]] || continue
+      case $answer in
+        [Yyt1+]) __printf "${bld}${green}yes${x}"; ret=0 ;;
+        [Nnf0\-]) __printf "${bld}${red}no${x}"; ret=1 ;;
+        [q]) __printf "${bld}${purple}quit${x}\n"; exit 1 ;;
+      esac
+      break
+    done
+    __printf "\n"
+    return $ret
+  }
 
   warn(){ local text=${1:-} force=${2:-1}; [ $force -eq 0 ] || [ $opt_debug -eq 0 ] &&__printf "$delta $text$x\n" "orange"; }
   okay(){ local text=${1:-} force=${2:-1}; [ $force -eq 0 ] || [ $opt_debug -eq 0 ] &&__printf "$pass $text$x\n" "green"; }
@@ -246,7 +278,7 @@
 
   ls_active(){
     for ((i=0; i<${#hosts[@]}; i++)); do
-      if [ "${inactives[i]}" != "$SYNCX_ACTIVE_ID" ]; then
+      if [ "${actives[i]}" != "$SYNCX_ACTIVE_ID" ]; then
         echo "[$i] ${keys[i]} ${hosts[i]}:${local_paths[i]}"
       fi
     done
@@ -290,6 +322,7 @@
     fi
 
     while read -r host l_path h_path; do
+      trace "config $host"
       hosts+=("$host")
       local_paths+=("$l_path")
       [ -z "$h_path" ] && h_path=$l_path; #use local path for host path if none provided
@@ -354,7 +387,7 @@
       #echo $pid;
       return 0;
     else
-      fatal "Path $local_dir doesnt exist cannot rsync!"
+      fatal "Path ($local_dir) doesnt exist cannot rsync!!"
       return 1;
     fi
 
@@ -372,17 +405,24 @@
 
       host_log="$MY_LOG/${host}.${$}log"
 
-      fswatch -o -L "$local_dir" | while read file; do
-        echo "$(date) - syncx change detected" >> "$SYNCX_LOG"
-        rsync -avz --rsync-path=/usr/bin/rsync $delete_flag --exclude='.DS_Store' --exclude='.git' --exclude="*bak*" --exclude="*.zip"  "$local_dir" "$host:$host_dir" >> "$host_log"
-      done &
-      pid=$! # Store the PID of the rsync process
+      (
+        # Start fswatch and process its output
+        fswatch -o -L "$local_dir" | while read file; do
+          echo "$(date) - syncx change detected" >> "$SYNCX_LOG"
+          rsync -avz --rsync-path=/usr/bin/rsync $delete_flag --exclude='.DS_Store' --exclude='.git' --exclude="*bak*" --exclude="*.zip" "$local_dir" "$host:$host_dir" >> "$host_log"
+        done
+      ) &
+      pid=$! # Store the PID of the subshell
+      #echo "fswatch PID: $fswatch_pid" >> "$SYNCX_LOG"
+
+
+      info "PID is $pid"
       pids[i]="$pid"
       echo $pid;
       #ret=$?;
       return 0;
     else
-      fatal "Path $local_dir doesnt exist cannot rsync!"
+      fatal "Path ($local_dir) doesnt exist cannot rsync!!"
       return 1;
     fi
   }
@@ -524,6 +564,42 @@
 
           do_syncx "$i" "$host" "$local_dir" "$host_dir"; ret=$?;
           pid=${pids[i]};
+          actives[i]=$SYNCX_ACTIVE_ID
+          keys[i]=$(pseudo_key)
+
+        else   
+          warn "Already watching $local_dir for $host. Skipping Sync..."
+        fi
+
+      fi
+
+    done
+
+    rc_write;
+
+  }
+
+
+  main_fake_sync(){
+    trace "Sync run..."
+    local host host_dir local_dir first_load=1
+
+    for ((i=0; i<${#hosts[@]}; i++)); do
+      
+      host="${hosts[i]}"
+      local_dir="${local_paths[i]}"
+      host_dir="${host_paths[i]}"
+
+      info "! $host $local_dir "
+
+      if [ -n $host ] && [ -d "$local_dir" ]; then
+
+        if [ -z "${pids[i]}" ] || ! is_running "${pids[i]}" ]; then
+
+          trace "Sync run... on (host:$host) "
+
+          fake_syncx "$i" "$host" "$local_dir" "$host_dir"; ret=$?;
+          pid=${pids[i]};
           inactives[i]=$SYNCX_ACTIVE_ID
           keys[i]=$(pseudo_key)
 
@@ -538,6 +614,18 @@
     rc_write;
 
   }
+
+
+
+  do_inspect(){
+    declare -F | grep 'do_' | awk '{print $3}'
+    _content=$(sed -n -E "s/[[:space:]]+([^)]+)\)[[:space:]]+cmd[[:space:]]*=[\'\"]([^\'\"]+)[\'\"].*/\1 \2/p" "$0")
+
+    while IFS= read -r line; do
+      echo "$line"
+    done <<< "$_content"
+
+ }
 
 
 #-------------------------------------------------------------------------------
@@ -600,6 +688,7 @@
   }
 
 
+  #todo: add host log tail
 
   dispatch(){
 
@@ -612,26 +701,34 @@
       ls)       cmd='ls_active';;
       lsi)      cmd='ls_inactive';;
       pids)     cmd='dump_pids';;
+      insp*)    cmd="do_inspect";;
+      fake*)    cmd='main_fake_sync';;
       xrc)      cmd='dump_var'; arg="SYNCX_RC";;
       xhome)    cmd='dump_var'; arg="SYNCX_HOME";;
       xconf)    cmd='dump_var'; arg="SYNCX_CONFIG";;
       conf*)    cmd='dump_cat'; arg="$SYNCX_CONFIG";;
       rc)       cmd='dump_cat'; arg="$SYNCX_RC";;
       curr|stat) cmd='dump_curr';;
-      key)      cmd='pseudo_key';;
+      key)      cmd='pseudo_key';; #int generator
       help)     cmd='usage';;
       *)
         if [ ! -z "$call" ]; then
-          fatal "Invalid command => $call";
+          err="Invalid command => $call";
+        else
+          err="Missing command!";
         fi
       ;;
     esac
-    trace "< $call | $cmd $arg >";
 
-    $cmd "$arg";ret=$?;
+
+    if [ -n "$cmd" ]; then
+      trace "< $call | $cmd $arg >";
+      $cmd "$arg";ret=$?;
+    fi
 
     [ -n "$err" ] && fatal "$err";
     return $ret;
+
   }
 
 
