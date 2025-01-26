@@ -279,7 +279,7 @@
   ls_active(){
     for ((i=0; i<${#hosts[@]}; i++)); do
       if [ "${actives[i]}" != "$SYNCX_ACTIVE_ID" ]; then
-        echo "[$i] ${keys[i]} ${hosts[i]}:${local_paths[i]}"
+        echo "[$i] ${pids[i]} ${hosts[i]}:${local_paths[i]} (key:${keys[i]})"
       fi
     done
   }
@@ -393,32 +393,30 @@
 
   }
 
-
   do_syncx(){
     trace "execute rsync ($1 $2 $3)"
     local i="$1" host="$2" local_dir="$3" host_dir="$4" pid ret; 
 
     if [ -d "$local_dir" -o  -f "$local_dir" ]; then
 
-      info "Watching $host... ($pid) [$i]";
-      info "\t $local_dir to $host_dir";
+      run_date=$(date "%m%d%Y");
+      echo "date $run_date"
+      host_log="$MY_LOG/${host}-host.log"
 
-      host_log="$MY_LOG/${host}.${$}log"
+      fswatch -o -L "$local_dir" | while read file; do
+        echo "$(date) - syncx change detected" >> "$SYNCX_LOG"
+        rsync -avz --rsync-path=/usr/bin/rsync $delete_flag --exclude='.DS_Store' --exclude='.git' --exclude="*bak*" --exclude="*.zip" "$local_dir" "$host:$host_dir" >> "$host_log"
+      done &
 
-      (
-        # Start fswatch and process its output
-        fswatch -o -L "$local_dir" | while read file; do
-          echo "$(date) - syncx change detected" >> "$SYNCX_LOG"
-          rsync -avz --rsync-path=/usr/bin/rsync $delete_flag --exclude='.DS_Store' --exclude='.git' --exclude="*bak*" --exclude="*.zip" "$local_dir" "$host:$host_dir" >> "$host_log"
-        done
-      ) &
       pid=$! # Store the PID of the subshell
-      #echo "fswatch PID: $fswatch_pid" >> "$SYNCX_LOG"
+      echo "fswatch PID: $pid" >> "$SYNCX_LOG"
 
-
-      info "PID is $pid"
       pids[i]="$pid"
-      echo $pid;
+
+      info "Watching $host... ($pid) [connection:$i]";
+      info "$local_dir -> $host_dir";
+
+
       #ret=$?;
       return 0;
     else
@@ -434,7 +432,7 @@
 
   do_pause_sync(){
     trace "execute pause ($1 $2 $3)"
-    local ret=1 target_pid="$1"
+    local ret=1 target_pid="${1:--1}"
     if [ "$target_pid" -ge 0 ]; then
       trace "Killing $target_pid => $((target_pid-1))"
       kill -9 "$target_pid"; ret=$?;
